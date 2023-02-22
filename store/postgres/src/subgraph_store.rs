@@ -1146,6 +1146,15 @@ impl SubgraphStoreInner {
         let src_store = self.for_site(site)?;
         src_store.load_deployment(site)
     }
+
+    pub fn load_deployment_by_id(
+        &self,
+        id: DeploymentId,
+    ) -> Result<SubgraphDeploymentEntity, StoreError> {
+        let site = self.find_site(id)?;
+        let src_store = self.for_site(&site)?;
+        src_store.load_deployment(&site)
+    }
 }
 
 const STATE_ENS_NOT_CHECKED: u8 = 0;

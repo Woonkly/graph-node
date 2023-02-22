@@ -157,6 +157,9 @@ pub enum Command {
         /// database
         #[clap(long, short)]
         force: bool,
+        /// Rewind to the start block of the subgraph
+        #[clap(long)]
+        start_block: bool,
         /// Sleep for this many seconds after pausing subgraphs
         #[clap(
             long,
@@ -166,10 +169,23 @@ pub enum Command {
         )]
         sleep: Duration,
         /// The block hash of the target block
-        block_hash: String,
+        #[clap(
+            required_unless_present = "start-block",
+            conflicts_with = "start-block",
+            long,
+            short = 'H'
+        )]
+        block_hash: Option<String>,
         /// The block number of the target block
-        block_number: i32,
+        #[clap(
+            required_unless_present = "start-block",
+            conflicts_with = "start-block",
+            long,
+            short = 'n'
+        )]
+        block_number: Option<i32>,
         /// The deployments to rewind (see `help info`)
+        #[clap(required = true, min_values = 1)]
         deployments: Vec<DeploymentSearch>,
     },
     /// Deploy and run an arbitrary subgraph up to a certain block
@@ -1057,6 +1073,7 @@ async fn main() -> anyhow::Result<()> {
             block_hash,
             block_number,
             deployments,
+            start_block,
         } => {
             let (store, primary) = ctx.store_and_primary();
             commands::rewind::run(
@@ -1067,6 +1084,7 @@ async fn main() -> anyhow::Result<()> {
                 block_number,
                 force,
                 sleep,
+                start_block,
             )
             .await
         }
