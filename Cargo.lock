@@ -1924,7 +1924,6 @@ dependencies = [
  "git-testament",
  "graph",
  "graph-core",
- "graph-graphql",
  "graphql-parser",
  "hex",
  "itertools",
