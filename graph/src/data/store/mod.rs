@@ -422,6 +422,10 @@ impl Value {
             _ => false,
         }
     }
+
+    fn is_null(&self) -> bool {
+        matches!(self, Value::Null)
+    }
 }
 
 impl fmt::Display for Value {
@@ -690,6 +694,11 @@ impl Entity {
                 _ => self.insert(key, value),
             };
         }
+    }
+
+    /// Remove all entries with value `Value::Null` from `self`
+    pub fn remove_null_fields(&mut self) {
+        self.0.retain(|_, value| !value.is_null())
     }
 
     /// Validate that this entity matches the object type definition in the
