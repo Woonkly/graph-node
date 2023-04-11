@@ -592,6 +592,10 @@ pub trait IntoEntityIterator: IntoIterator<Item = (Word, Value)> {}
 
 impl<T: IntoIterator<Item = (Word, Value)>> IntoEntityIterator for T {}
 
+pub trait TryIntoEntityIterator<E>: IntoIterator<Item = Result<(Word, Value), E>> {}
+
+impl<E, T: IntoIterator<Item = Result<(Word, Value), E>>> TryIntoEntityIterator<E> for T {}
+
 impl stable_hash_legacy::StableHash for Entity {
     #[inline]
     fn stable_hash<H: stable_hash_legacy::StableHasher>(
@@ -631,6 +635,11 @@ macro_rules! entity {
 impl Entity {
     pub fn make<I: IntoEntityIterator>(_pool: AtomPool, iter: I) -> Entity {
         Entity(HashMap::from_iter(iter))
+    }
+
+    pub fn try_make<E, I: TryIntoEntityIterator<E>>(_pool: AtomPool, iter: I) -> Result<Entity, E> {
+        let map: HashMap<_, _> = iter.into_iter().collect::<Result<_, E>>()?;
+        Ok(Entity(map))
     }
 
     /// Creates a new entity with no attributes set.
@@ -838,12 +847,6 @@ impl Entity {
 impl<'a> From<&'a Entity> for Cow<'a, Entity> {
     fn from(entity: &'a Entity) -> Self {
         Cow::Borrowed(entity)
-    }
-}
-
-impl FromIterator<(Word, Value)> for Entity {
-    fn from_iter<T: IntoIterator<Item = (Word, Value)>>(iter: T) -> Self {
-        Entity(HashMap::from_iter(iter))
     }
 }
 
