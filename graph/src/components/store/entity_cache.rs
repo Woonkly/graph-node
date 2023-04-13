@@ -65,7 +65,7 @@ impl EntityCache {
     }
 
     /// Make a new entity. The entity is not part of the cache
-    pub fn make_entity<I: IntoEntityIterator>(&self, iter: I) -> Entity {
+    pub fn make_entity<I: IntoEntityIterator>(&self, iter: I) -> Result<Entity, anyhow::Error> {
         self.schema.make_entity(iter)
     }
 
