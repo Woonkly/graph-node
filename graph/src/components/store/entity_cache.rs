@@ -9,7 +9,7 @@ use crate::prelude::ENV_VARS;
 use crate::schema::InputSchema;
 use crate::util::lfu_cache::LfuCache;
 
-use super::{DerivedEntityQuery, EntityType, LoadRelatedRequest};
+use super::{DerivedEntityQuery, EntityType, LoadRelatedRequest, StoreError};
 
 /// A cache for entities from the store that provides the basic functionality
 /// needed for the store interactions in the host exports. This struct tracks
@@ -105,7 +105,7 @@ impl EntityCache {
         self.handler_updates.clear();
     }
 
-    pub fn get(&mut self, eref: &EntityKey) -> Result<Option<Entity>, s::QueryExecutionError> {
+    pub fn get(&mut self, eref: &EntityKey) -> Result<Option<Entity>, StoreError> {
         // Get the current entity, apply any updates from `updates`, then
         // from `handler_updates`.
         let mut entity = self.current.get_entity(&*self.store, eref)?;
@@ -114,10 +114,10 @@ impl EntityCache {
         debug_assert!(entity == self.store.get(eref).unwrap());
 
         if let Some(op) = self.updates.get(eref).cloned() {
-            entity = op.apply_to(entity)
+            entity = op.apply_to(entity).map_err(|e| eref.unknown_attribute(e))?;
         }
         if let Some(op) = self.handler_updates.get(eref).cloned() {
-            entity = op.apply_to(entity)
+            entity = op.apply_to(entity).map_err(|e| eref.unknown_attribute(e))?;
         }
         Ok(entity)
     }
@@ -247,7 +247,7 @@ impl EntityCache {
     /// to the current state is actually needed.
     ///
     /// Also returns the updated `LfuCache`.
-    pub fn as_modifications(mut self) -> Result<ModificationsAndCache, s::QueryExecutionError> {
+    pub fn as_modifications(mut self) -> Result<ModificationsAndCache, StoreError> {
         assert!(!self.in_handler);
 
         // The first step is to make sure all entities being set are in `self.current`.
@@ -286,7 +286,8 @@ impl EntityCache {
                 // Entity may have been changed
                 (Some(current), EntityOp::Update(updates)) => {
                     let mut data = current.clone();
-                    data.merge_remove_null_fields(updates);
+                    data.merge_remove_null_fields(updates)
+                        .map_err(|e| key.unknown_attribute(e))?;
                     self.current.insert(key.clone(), Some(data.clone()));
                     if current != data {
                         Some(Overwrite { key, data })
