@@ -2,8 +2,8 @@ version: '3'
 services:
   graph-node:
     image: graphprotocol/graph-node
-    mem_limit: 4g # Limita la memoria a 4 GB
-    mem_reservation: 2g # Reserva 2 GB de memoria
+    mem_limit: 6g # Limita la memoria a 4 GB
+    mem_reservation: 3g # Reserva 2 GB de memoria
     ports:
       - '8000:8000'
       - '8001:8001'
@@ -32,6 +32,8 @@ services:
       - ./data/ipfs:/data/ipfs
   postgres:
     image: postgres
+    mem_limit: 6g # Limita la memoria a 4 GB
+    mem_reservation: 3g # Reserva 2 GB de memoria
     ports:
       - '5432:5432'
     command:
