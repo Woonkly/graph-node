@@ -2,8 +2,6 @@ version: '3'
 services:
   graph-node:
     image: graphprotocol/graph-node
-    mem_limit: 4g # Limita la memoria a 4 GB
-    mem_reservation: 2g # Reserva 2 GB de memoria
     ports:
       - '8000:8000'
       - '8001:8001'
@@ -14,7 +12,7 @@ services:
       - ipfs
       - postgres
     extra_hosts:
-      - 172.24.0.1:host-gateway
+      - host.docker.internal:host-gateway
     environment:
       postgres_host: postgres
       postgres_user: graph-node
@@ -22,8 +20,7 @@ services:
       postgres_db: graph-node
       ipfs: 'ipfs:5001'
       GRAPH_LOG: info
-      ethereum: "mainnet:https://rpc.ankr.com/bsc/b6d24622870a8adfc6d360eca44583adb92809daa6edc72613f0bcd7cff2b1fa"
-      GRAPH_CORS_ORIGIN: '*'
+      ethereum: "mainnet:https://bsc-dataseed.binance.org"
   ipfs:
     image: ipfs/go-ipfs:v0.10.0
     ports:
